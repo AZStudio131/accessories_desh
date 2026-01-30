@@ -3,88 +3,190 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinetic Admin | Cloud Sync</title>
+    <title>Kinetic | Audio, Tech & Cloud Admin</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
-        #login-box { max-width: 350px; margin: 80px auto; background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        .container { background: white; padding: 25px; border-radius: 15px; display: none; max-width: 1300px; margin: 0 auto; }
-        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn { padding: 10px 15px; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; }
-        .logout-btn { background: #cc0000; color: white; }
-        .status-btn { background: #e69d45; color: white; padding: 5px; font-size: 11px; }
-        table { width: 100%; border-collapse: collapse; }
+        /* YOUR ORIGINAL STORE STYLES */
+        * { box-sizing: border-box; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f4ef; color: #333; line-height: 1.6; }
+        .page { display: none; }
+        .page.active { display: block; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 8%; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; gap: 20px; }
+        .logo { font-weight: 800; font-size: 24px; letter-spacing: 2px; cursor: pointer; flex-shrink: 0; }
+        .search-wrap { flex-grow: 1; max-width: 400px; }
+        .search-wrap input { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid #eee; background: #f9f9f9; font-size: 14px; outline: none; }
+        nav { display: flex; gap: 25px; }
+        nav a { text-decoration: none; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .hero { display: flex; margin: 30px 8%; background: linear-gradient(90deg, #e69d45 45%, #333 45%); border-radius: 20px; overflow: hidden; min-height: 350px; }
+        .hero-text { flex: 1; padding: 60px; color: white; display: flex; flex-direction: column; justify-content: center; }
+        .hero-text h1 { font-size: 56px; line-height: 0.9; margin: 0 0 15px; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin: 0 8% 50px; }
+        .card { background: #fff; padding: 25px; border-radius: 15px; text-align: center; transition: 0.3s; cursor: pointer; }
+        .card img { width: 100%; height: 180px; object-fit: contain; }
+        .price { color: #e69d45; font-weight: bold; font-size: 18px; }
+        .add-btn { background: #333; color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .order-form { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: #888; font-weight: bold; }
+        .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+
+        /* DASHBOARD SPECIFIC STYLES */
+        #admin-panel { background: #f4f4f4; padding: 40px 8%; min-height: 100vh; }
+        .dash-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #e69d45; color: white; padding: 12px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-        @media (max-width: 800px) {
-            thead { display: none; }
-            tr { display: block; border: 1px solid #e69d45; margin-bottom: 10px; border-radius: 8px; }
-            td { display: flex; justify-content: space-between; text-align: right; }
-            td::before { content: attr(data-label); font-weight: bold; text-align: left; }
+        .status-btn { background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; }
+
+        @media (max-width: 768px) {
+            .hero { flex-direction: column; }
+            .product-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <div id="login-box">
-        <h2>🔒 Admin Login</h2>
-        <input type="text" id="userInput" placeholder="Username" style="width:100%; padding:10px; margin-bottom:10px;">
-        <input type="password" id="passInput" placeholder="Password" style="width:100%; padding:10px;">
-        <button class="btn" style="background:#e69d45; color:white; width:100%; margin-top:10px;" onclick="checkAuth()">LOGIN</button>
+    <header>
+        <div class="logo" onclick="navigateTo('home')">KINETIC</div>
+        <div class="search-wrap"><input type="text" id="mainSearch" placeholder="Search products..." onkeyup="filterProducts()"></div>
+        <nav>
+            <a onclick="navigateTo('home')">HOME</a>
+            <a onclick="navigateTo('store')">STORE</a>
+            <a onclick="navigateTo('admin-login')">ADMIN</a>
+        </nav>
+    </header>
+
+    <div id="home" class="page active">
+        <section class="hero">
+            <div class="hero-text"><h1>PURE <br> SOUND.</h1><button class="add-btn" style="width:150px; background:#fff; color:#333;" onclick="navigateTo('store')">SHOP NOW</button></div>
+            <div style="flex:1; background: url('ads1.png') center/contain no-repeat;"></div>
+        </section>
+        <h2 style="margin: 40px 8% 20px;">Trending Now</h2>
+        <div class="product-grid">
+            <div class="card" onclick="viewProduct('AIRPODS A9 PRO', 'Rs 2000', 'item3.png', 'Best in class audio.')">
+                <img src="item3.png"><h3>AIRPODS A9 PRO</h3><p class="price">Rs 2000</p><button class="add-btn">VIEW DETAILS</button>
+            </div>
+            <div class="card" onclick="viewProduct('Kinetic Buds', 'Rs 3500', 'item1.webp', 'Wireless freedom.')">
+                <img src="item1.webp"><h3>Kinetic Buds</h3><p class="price">Rs 3500</p><button class="add-btn">VIEW DETAILS</button>
+            </div>
+        </div>
     </div>
 
-    <div class="container" id="dash-content">
-        <div class="header-bar">
-            <h1>Cloud Orders</h1>
-            <button class="btn logout-btn" onclick="logout()">LOGOUT</button>
+    <div id="product-detail" class="page">
+        <div style="display:flex; gap:50px; padding:50px 8%; background:#fff; margin:20px 8%; border-radius:20px;">
+            <img id="p-img" style="width:300px; object-fit:contain;">
+            <div>
+                <h2 id="p-title"></h2>
+                <p class="price" id="p-price"></p>
+                <p id="p-desc"></p>
+                <button class="add-btn" style="background:#e69d45;" onclick="navigateTo('order')">ORDER NOW</button>
+            </div>
         </div>
-        <table id="orderTable">
-            <thead>
-                <tr>
-                    <th>Date</th><th>Product</th><th>Price</th><th>Customer</th><th>Email</th><th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="orderList">
-                <tr><td colspan="6" style="text-align:center;">Loading orders from cloud...</td></tr>
-            </tbody>
-        </table>
+    </div>
+
+    <div id="order" class="page">
+        <div class="order-form">
+            <h2>Finalize Order</h2>
+            <div id="summary-name" style="font-weight:bold; margin-bottom:20px; color:#e69d45;"></div>
+            <form onsubmit="saveCustomerData(event)">
+                <div class="input-group"><label>Full Name</label><input type="text" id="cust_name" required></div>
+                <div class="input-group"><label>Phone Number</label><input type="tel" id="cust_phone" required></div>
+                <div class="input-group"><label>Address</label><textarea id="cust_address" required></textarea></div>
+                <button type="submit" id="submitBtn" class="add-btn" style="background:#e69d45;">PLACE ORDER</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-login" class="page">
+        <div class="order-form" style="text-align:center;">
+            <h2>Admin Login</h2>
+            <input type="text" id="adminUser" placeholder="Username" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="password" id="adminPass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="add-btn" onclick="checkAdmin()">LOGIN</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="page">
+        <div class="dash-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2>Cloud Orders (Live)</h2>
+                <button onclick="fetchOrders()" class="add-btn" style="width:120px; font-size:12px;">REFRESH DATA</button>
+            </div>
+            <table>
+                <thead><tr><th>Date</th><th>Product</th><th>Customer</th><th>Phone</th><th>Status</th></tr></thead>
+                <tbody id="orderList"></tbody>
+            </table>
+            <button onclick="logout()" class="add-btn" style="margin-top:20px; background:#cc0000;">LOGOUT</button>
+        </div>
     </div>
 
     <script>
-        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFbhNjjXNuwica0DUitLlzT0U_pYNbMT1kt4f1zfgG9jkxzTtMMkRdABOp7LpOEQRRRg/exec";
-        
-        function checkAuth() {
-            if(document.getElementById('userInput').value === "admin" && document.getElementById('passInput').value === "kinetic2026") {
-                sessionStorage.setItem('kinetic_auth', 'true');
-                showDashboard();
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFbhNjjXNuwica0DUitLlzT0U_pYNbMT1kt4f1zfgG9jkxzTtMMkRdABOp7LpOEQRRRg/exec";
+
+        function navigateTo(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function viewProduct(name, price, img, desc) {
+            document.getElementById('p-title').innerText = name;
+            document.getElementById('p-price').innerText = price;
+            document.getElementById('p-desc').innerText = desc;
+            document.getElementById('p-img').src = img;
+            document.getElementById('summary-name').innerText = "Ordering: " + name;
+            navigateTo('product-detail');
+        }
+
+        // SEND ORDER TO GOOGLE SHEET
+        function saveCustomerData(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "SENDING...";
+            btn.disabled = true;
+
+            const data = {
+                item: document.getElementById('p-title').innerText,
+                price: document.getElementById('p-price').innerText,
+                name: document.getElementById('cust_name').value,
+                phone: document.getElementById('cust_phone').value,
+                address: document.getElementById('cust_address').value,
+                email: "N/A", zip: "N/A"
+            };
+
+            fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
+            .then(() => {
+                alert("Order Placed on Cloud!");
+                location.reload();
+            });
+        }
+
+        // ADMIN LOGIC
+        function checkAdmin() {
+            if(document.getElementById('adminUser').value === "admin" && document.getElementById('adminPass').value === "kinetic2026") {
+                navigateTo('admin-panel');
+                fetchOrders();
             } else { alert("Wrong!"); }
         }
 
-        async function showDashboard() {
-            document.getElementById('login-box').style.display = "none";
-            document.getElementById('dash-content').style.display = "block";
-            
+        async function fetchOrders() {
+            const list = document.getElementById('orderList');
+            list.innerHTML = "Loading...";
             try {
-                const response = await fetch(GOOGLE_SCRIPT_URL);
-                const orders = await response.json();
-                const list = document.getElementById('orderList');
-                
+                const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
+                const orders = await res.json();
                 list.innerHTML = orders.reverse().map(o => `
                     <tr>
-                        <td data-label="Date">${new Date(o.date).toLocaleDateString()}</td>
-                        <td data-label="Product">${o.item}</td>
-                        <td data-label="Price">${o.price}</td>
-                        <td data-label="Customer">${o.name}<br>${o.phone}</td>
-                        <td data-label="Email">${o.email}</td>
-                        <td data-label="Status"><button class="btn status-btn">${o.status}</button></td>
+                        <td>${new Date(o.date).toLocaleDateString()}</td>
+                        <td>${o.item}</td>
+                        <td>${o.name}</td>
+                        <td>${o.phone}</td>
+                        <td><span class="status-btn">PENDING</span></td>
                     </tr>
                 `).join('');
-            } catch (e) {
-                document.getElementById('orderList').innerHTML = "Error loading data. Check Internet.";
-            }
+            } catch(e) { list.innerHTML = "Error fetching cloud data."; }
         }
 
-        function logout() { sessionStorage.removeItem('kinetic_auth'); location.reload(); }
-        if(sessionStorage.getItem('kinetic_auth') === 'true') showDashboard();
+        function logout() { location.reload(); }
     </script>
 </body>
 </html>
