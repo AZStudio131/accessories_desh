@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetic Admin | Secured Access</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; background: #f4f4f4; margin: 0; }
+        
+        /* LOGIN BOX */
+        #login-box { 
+            max-width: 350px; margin: 80px auto; background: white; padding: 40px; 
+            border-radius: 15px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        /* CONTAINER */
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; max-width: 1300px; margin: 0 auto; }
+        
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #333; font-size: 24px; margin: 0; }
+        
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 10px 18px; border: none; cursor: pointer; border-radius: 6px; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        .export-btn { background: #333; color: white; }
+        .clear-btn { background: #666; color: white; }
+        .logout-btn { background: #cc0000; color: white; }
+        .delete-btn { background: #ff4d4d; color: white; padding: 5px 10px; font-size: 11px; }
+        .status-btn { padding: 5px 10px; font-size: 11px; color: white; border-radius: 4px; min-width: 80px; }
+        .login-btn { background: #e69d45; color: white; width: 100%; margin-top: 15px; }
+        
+        .status-pending { background: #f39c12; }
+        .status-shipped { background: #3498db; }
+        .status-delivered { background: #27ae60; }
+
+        .input-wrap { text-align: left; margin-bottom: 15px; }
+        .input-wrap label { font-size: 12px; font-weight: bold; color: #888; display: block; margin-bottom: 5px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background-color: #e69d45; color: white; padding: 15px; text-align: left; font-size: 13px; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 13px; color: #555; vertical-align: middle; }
+
+        @media (max-width: 992px) {
+            .header-bar { flex-direction: column; text-align: center; }
+            .btn-group { width: 100%; justify-content: center; }
+            thead { display: none; }
+            tr { display: block; margin-bottom: 15px; border: 1px solid #e69d45; border-radius: 10px; padding: 10px; background: #fff; }
+            td { display: flex; justify-content: space-between; padding: 8px 5px; border-bottom: 1px solid #f9f9f9; text-align: right; align-items: center; }
+            td::before { content: attr(data-label); font-weight: bold; color: #333; text-transform: uppercase; font-size: 10px; text-align: left; }
+            td:last-child { border-bottom: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-box">
+        <h2 style="margin-top:0;">🔒 Admin Login</h2>
+        <div class="input-wrap">
+            <label>USERNAME</label>
+            <input type="text" id="userInput" placeholder="Admin Name">
+        </div>
+        <div class="input-wrap">
+            <label>PASSWORD</label>
+            <input type="password" id="passInput" placeholder="••••••••">
+        </div>
+        <button class="btn login-btn" onclick="checkAuth()">SIGN IN</button>
+    </div>
+
+    <div class="container" id="dash-content">
+        <div class="header-bar">
+            <h1>Orders Management</h1>
+            <div class="btn-group">
+                <button class="btn export-btn" onclick="exportToCSV()">EXPORT CSV</button>
+                <button class="btn clear-btn" onclick="clearAllOrders()">CLEAR ALL</button>
+                <button class="btn logout-btn" onclick="logout()">LOGOUT</button>
+            </div>
+        </div>
+        
+        <table id="orderTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Customer</th>
+                    <th>Zip Code</th>
+                    <th>Address</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="orderList"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // SET YOUR CREDENTIALS HERE
+        const VALID_USER = "admin";
+        const VALID_PASS = "kinetic2026";
+
+        // Check if session exists on load
+        window.onload = function() {
+            if (sessionStorage.getItem('kinetic_auth') === 'true') {
+                showDashboard();
+            }
+        };
+
+        function checkAuth() {
+            const user = document.getElementById('userInput').value;
+            const pass = document.getElementById('passInput').value;
+
+            if (user === VALID_USER && pass === VALID_PASS) {
+                sessionStorage.setItem('kinetic_auth', 'true');
+                showDashboard();
+            } else {
+                alert("Invalid Credentials! Please try again.");
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('login-box').style.display = "none";
+            document.getElementById('dash-content').style.display = "block";
+            loadOrders();
+        }
+
+        function logout() {
+            sessionStorage.removeItem('kinetic_auth');
+            location.reload();
+        }
+
+        // --- DASHBOARD LOGIC ---
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
+            const list = document.getElementById('orderList');
+            
+            if (orders.length === 0) {
+                list.innerHTML = "<tr><td colspan='8' style='text-align:center;'>No orders found</td></tr>";
+                return;
+            }
+
+            list.innerHTML = orders.slice().reverse().map((o, index) => {
+                const originalIndex = (orders.length - 1) - index;
+                const currentStatus = o.status || 'Pending';
+                const statusClass = 'status-' + currentStatus.toLowerCase();
+
+                return `
+                <tr>
+                    <td data-label="Date">${o.date}</td>
+                    <td data-label="Product"><strong>${o.item}</strong></td>
+                    <td data-label="Price">${o.price}</td>
+                    <td data-label="Customer">${o.name}<br><small>${o.phone}</small></td>
+                    <td data-label="Zip Code">${o.zip || 'N/A'}</td>
+                    <td data-label="Address">${o.address}</td>
+                    <td data-label="Status">
+                        <button class="btn status-btn ${statusClass}" onclick="toggleStatus(${originalIndex})">
+                            ${currentStatus.toUpperCase()}
+                        </button>
+                    </td>
+                    <td data-label="Action">
+                        <button class="btn delete-btn" onclick="deleteOrder(${originalIndex})">DELETE</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function toggleStatus(index) {
+            let orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
+            const statusCycle = ['Pending', 'Shipped', 'Delivered'];
+            let currentIdx = statusCycle.indexOf(orders[index].status || 'Pending');
+            let nextIdx = (currentIdx + 1) % statusCycle.length;
+            orders[index].status = statusCycle[nextIdx];
+            localStorage.setItem('kinetic_orders', JSON.stringify(orders));
+            loadOrders();
+        }
+
+        function deleteOrder(index) {
+            let orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
+            if(confirm("Delete this order?")) {
+                orders.splice(index, 1);
+                localStorage.setItem('kinetic_orders', JSON.stringify(orders));
+                loadOrders();
+            }
+        }
+
+        function clearAllOrders() {
+            if(confirm("Delete ALL orders?")) {
+                localStorage.setItem('kinetic_orders', JSON.stringify([]));
+                loadOrders();
+            }
+        }
+
+        function exportToCSV() {
+            const orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
+            if(orders.length === 0) return alert("No orders found");
+            let csv = "Date,Item,Price,Name,Email,Phone,Address,Zip,Status\n";
+            orders.forEach(o => {
+                csv += `"${o.date}","${o.item}","${o.price}","${o.name}","${o.email}","${o.phone}","${o.address}","${o.zip}","${o.status || 'Pending'}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url); a.setAttribute('download', 'Kinetic_Orders.csv');
+            a.click();
+        }
+    </script>
+</body>
+</html>
