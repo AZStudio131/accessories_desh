@@ -3,190 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kinetic | Audio, Tech & Cloud Admin</title>
+    <title>Kinetic Admin | Ultimate Control</title>
     <style>
-        /* YOUR ORIGINAL STORE STYLES */
-        * { box-sizing: border-box; }
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; background-color: #f7f4ef; color: #333; line-height: 1.6; }
-        .page { display: none; }
-        .page.active { display: block; }
-        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 8%; background: #fff; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 1000; gap: 20px; }
-        .logo { font-weight: 800; font-size: 24px; letter-spacing: 2px; cursor: pointer; flex-shrink: 0; }
-        .search-wrap { flex-grow: 1; max-width: 400px; }
-        .search-wrap input { width: 100%; padding: 10px 15px; border-radius: 20px; border: 1px solid #eee; background: #f9f9f9; font-size: 14px; outline: none; }
-        nav { display: flex; gap: 25px; }
-        nav a { text-decoration: none; color: #666; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .hero { display: flex; margin: 30px 8%; background: linear-gradient(90deg, #e69d45 45%, #333 45%); border-radius: 20px; overflow: hidden; min-height: 350px; }
-        .hero-text { flex: 1; padding: 60px; color: white; display: flex; flex-direction: column; justify-content: center; }
-        .hero-text h1 { font-size: 56px; line-height: 0.9; margin: 0 0 15px; }
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin: 0 8% 50px; }
-        .card { background: #fff; padding: 25px; border-radius: 15px; text-align: center; transition: 0.3s; cursor: pointer; }
-        .card img { width: 100%; height: 180px; object-fit: contain; }
-        .price { color: #e69d45; font-weight: bold; font-size: 18px; }
-        .add-btn { background: #333; color: white; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .order-form { max-width: 600px; margin: 40px auto; background: white; padding: 40px; border-radius: 20px; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; color: #888; font-weight: bold; }
-        .input-group input, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        :root { --accent: #e69d45; --danger: #e74c3c; --success: #27ae60; --dark: #1a1a1a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; }
+        
+        /* LOGIN OVERLAY */
+        #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:var(--dark); display:flex; align-items:center; justify-content:center; z-index:999; }
+        .login-box { background:white; padding:40px; border-radius:15px; width:350px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .login-box input { width:100%; padding:12px; margin:10px 0; border:1px solid #ddd; border-radius:8px; box-sizing: border-box; }
 
-        /* DASHBOARD SPECIFIC STYLES */
-        #admin-panel { background: #f4f4f4; padding: 40px 8%; min-height: 100vh; }
-        .dash-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #e69d45; color: white; padding: 12px; text-align: left; }
+        /* DASHBOARD UI */
+        #dashboard-ui { display:none; padding:25px; }
+        .container { max-width: 1500px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--accent); padding-bottom: 15px; margin-bottom: 20px; }
+        .bulk-bar { display:none; background: #fff5e6; padding: 15px; border-radius: 8px; border: 1px solid var(--accent); margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #222; color: white; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-        .status-btn { background: #27ae60; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; }
+        tr:hover { background: #fafafa; }
+        .selected-row { background-color: #fff9f0 !important; }
 
-        @media (max-width: 768px) {
-            .hero { flex-direction: column; }
-            .product-grid { grid-template-columns: 1fr 1fr; }
-        }
+        .btn { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-refresh { background: var(--accent); color: white; }
+        .btn-csv { background: var(--success); color: white; margin-right: 10px; }
+        .btn-del { background: var(--danger); color: white; }
+        
+        .status-pill { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        .pending { background: #ffeaa7; color: #d35400; }
+        .completed { background: #55efc4; color: #00b894; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo" onclick="navigateTo('home')">KINETIC</div>
-        <div class="search-wrap"><input type="text" id="mainSearch" placeholder="Search products..." onkeyup="filterProducts()"></div>
-        <nav>
-            <a onclick="navigateTo('home')">HOME</a>
-            <a onclick="navigateTo('store')">STORE</a>
-            <a onclick="navigateTo('admin-login')">ADMIN</a>
-        </nav>
-    </header>
-
-    <div id="home" class="page active">
-        <section class="hero">
-            <div class="hero-text"><h1>PURE <br> SOUND.</h1><button class="add-btn" style="width:150px; background:#fff; color:#333;" onclick="navigateTo('store')">SHOP NOW</button></div>
-            <div style="flex:1; background: url('ads1.png') center/contain no-repeat;"></div>
-        </section>
-        <h2 style="margin: 40px 8% 20px;">Trending Now</h2>
-        <div class="product-grid">
-            <div class="card" onclick="viewProduct('AIRPODS A9 PRO', 'Rs 2000', 'item3.png', 'Best in class audio.')">
-                <img src="item3.png"><h3>AIRPODS A9 PRO</h3><p class="price">Rs 2000</p><button class="add-btn">VIEW DETAILS</button>
-            </div>
-            <div class="card" onclick="viewProduct('Kinetic Buds', 'Rs 3500', 'item1.webp', 'Wireless freedom.')">
-                <img src="item1.webp"><h3>Kinetic Buds</h3><p class="price">Rs 3500</p><button class="add-btn">VIEW DETAILS</button>
-            </div>
+    <div id="login-overlay">
+        <div class="login-box">
+            <h2>KINETIC SECURE</h2>
+            <input type="text" id="user" placeholder="Username">
+            <input type="password" id="pass" placeholder="Password">
+            <button class="btn btn-refresh" style="width:100%; margin-top:10px;" onclick="attemptLogin()">LOGIN</button>
         </div>
     </div>
 
-    <div id="product-detail" class="page">
-        <div style="display:flex; gap:50px; padding:50px 8%; background:#fff; margin:20px 8%; border-radius:20px;">
-            <img id="p-img" style="width:300px; object-fit:contain;">
-            <div>
-                <h2 id="p-title"></h2>
-                <p class="price" id="p-price"></p>
-                <p id="p-desc"></p>
-                <button class="add-btn" style="background:#e69d45;" onclick="navigateTo('order')">ORDER NOW</button>
+    <div id="dashboard-ui">
+        <div class="container">
+            <div class="header">
+                <h1>Order Control Panel</h1>
+                <div>
+                    <button class="btn btn-csv" onclick="downloadCSV()">📥 EXPORT CSV</button>
+                    <button class="btn btn-refresh" onclick="fetchOrders()">🔄 REFRESH</button>
+                    <button class="btn" style="background:#555; color:white; margin-left:10px;" onclick="location.reload()">LOGOUT</button>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div id="order" class="page">
-        <div class="order-form">
-            <h2>Finalize Order</h2>
-            <div id="summary-name" style="font-weight:bold; margin-bottom:20px; color:#e69d45;"></div>
-            <form onsubmit="saveCustomerData(event)">
-                <div class="input-group"><label>Full Name</label><input type="text" id="cust_name" required></div>
-                <div class="input-group"><label>Phone Number</label><input type="tel" id="cust_phone" required></div>
-                <div class="input-group"><label>Address</label><textarea id="cust_address" required></textarea></div>
-                <button type="submit" id="submitBtn" class="add-btn" style="background:#e69d45;">PLACE ORDER</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="admin-login" class="page">
-        <div class="order-form" style="text-align:center;">
-            <h2>Admin Login</h2>
-            <input type="text" id="adminUser" placeholder="Username" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="password" id="adminPass" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="add-btn" onclick="checkAdmin()">LOGIN</button>
-        </div>
-    </div>
-
-    <div id="admin-panel" class="page">
-        <div class="dash-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h2>Cloud Orders (Live)</h2>
-                <button onclick="fetchOrders()" class="add-btn" style="width:120px; font-size:12px;">REFRESH DATA</button>
+            <div id="bulkBar" class="bulk-bar">
+                <span id="selectedCount" style="font-weight:bold;">0 items selected</span>
+                <button class="btn btn-del" style="margin-left:20px;" onclick="deleteSelected()">🗑️ DELETE SELECTED</button>
             </div>
+
             <table>
-                <thead><tr><th>Date</th><th>Product</th><th>Customer</th><th>Phone</th><th>Status</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" onclick="toggleAll(this)"></th>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Customer / Email</th>
+                        <th>Address / Postal</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
                 <tbody id="orderList"></tbody>
             </table>
-            <button onclick="logout()" class="add-btn" style="margin-top:20px; background:#cc0000;">LOGOUT</button>
         </div>
     </div>
 
-    <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwFbhNjjXNuwica0DUitLlzT0U_pYNbMT1kt4f1zfgG9jkxzTtMMkRdABOp7LpOEQRRRg/exec";
+<script>
+    const CLOUD_URL = "https://script.google.com/macros/s/AKfycbzxh2sBt9G9j4dQKRP-s2g48dpjlWz2osC3vmUD0P2asvv7r0vs6pTmCUWd6hyU91kI/exec";
+    let ordersData = [];
 
-        function navigateTo(id) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo(0,0);
-        }
+    function attemptLogin() {
+        if(document.getElementById('user').value === "admin" && document.getElementById('pass').value === "kinetic2026") {
+            document.getElementById('login-overlay').style.display = "none";
+            document.getElementById('dashboard-ui').style.display = "block";
+            fetchOrders();
+        } else { alert("Access Denied"); }
+    }
 
-        function viewProduct(name, price, img, desc) {
-            document.getElementById('p-title').innerText = name;
-            document.getElementById('p-price').innerText = price;
-            document.getElementById('p-desc').innerText = desc;
-            document.getElementById('p-img').src = img;
-            document.getElementById('summary-name').innerText = "Ordering: " + name;
-            navigateTo('product-detail');
-        }
-
-        // SEND ORDER TO GOOGLE SHEET
-        function saveCustomerData(e) {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "SENDING...";
-            btn.disabled = true;
-
-            const data = {
-                item: document.getElementById('p-title').innerText,
-                price: document.getElementById('p-price').innerText,
-                name: document.getElementById('cust_name').value,
-                phone: document.getElementById('cust_phone').value,
-                address: document.getElementById('cust_address').value,
-                email: "N/A", zip: "N/A"
-            };
-
-            fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(data) })
-            .then(() => {
-                alert("Order Placed on Cloud!");
-                location.reload();
-            });
-        }
-
-        // ADMIN LOGIC
-        function checkAdmin() {
-            if(document.getElementById('adminUser').value === "admin" && document.getElementById('adminPass').value === "kinetic2026") {
-                navigateTo('admin-panel');
-                fetchOrders();
-            } else { alert("Wrong!"); }
-        }
-
-        async function fetchOrders() {
-            const list = document.getElementById('orderList');
-            list.innerHTML = "Loading...";
-            try {
-                const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
-                const orders = await res.json();
-                list.innerHTML = orders.reverse().map(o => `
-                    <tr>
+    async function fetchOrders() {
+        const list = document.getElementById('orderList');
+        list.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:30px;'>Synchronizing Cloud Data...</td></tr>";
+        try {
+            const res = await fetch(`${CLOUD_URL}?t=${Date.now()}`);
+            ordersData = await res.json();
+            list.innerHTML = "";
+            ordersData.slice().reverse().forEach(o => {
+                list.innerHTML += `
+                    <tr id="row-${o.rowId}">
+                        <td><input type="checkbox" class="order-check" value="${o.rowId}" onclick="updateUI()"></td>
                         <td>${new Date(o.date).toLocaleDateString()}</td>
-                        <td>${o.item}</td>
-                        <td>${o.name}</td>
+                        <td><strong>${o.item}</strong><br><small>${o.price}</small></td>
+                        <td>${o.name}<br><small style="color:#888;">${o.email}</small></td>
+                        <td>${o.address}<br><strong>${o.zip}</strong></td>
                         <td>${o.phone}</td>
-                        <td><span class="status-btn">PENDING</span></td>
-                    </tr>
-                `).join('');
-            } catch(e) { list.innerHTML = "Error fetching cloud data."; }
-        }
+                        <td><span class="status-pill ${o.status === 'COMPLETED' ? 'completed' : 'pending'}" onclick="toggleStatus(this)">${o.status || 'PENDING'}</span></td>
+                    </tr>`;
+            });
+        } catch (e) { list.innerHTML = "Error loading data."; }
+    }
 
-        function logout() { location.reload(); }
-    </script>
+    function toggleAll(master) {
+        document.querySelectorAll('.order-check').forEach(cb => cb.checked = master.checked);
+        updateUI();
+    }
+
+    function updateUI() {
+        const checked = document.querySelectorAll('.order-check:checked');
+        document.getElementById('bulkBar').style.display = checked.length > 0 ? "block" : "none";
+        document.getElementById('selectedCount').innerText = `${checked.length} items selected`;
+        document.querySelectorAll('.order-check').forEach(cb => {
+            cb.closest('tr').className = cb.checked ? "selected-row" : "";
+        });
+    }
+
+    async function deleteSelected() {
+        const selected = Array.from(document.querySelectorAll('.order-check:checked')).map(cb => cb.value);
+        if(!confirm(`Delete ${selected.length} orders forever?`)) return;
+        try {
+            await fetch(`${CLOUD_URL}?action=deleteMulti&rows=${selected.join(',')}`);
+            alert("Database Updated Successfully!");
+            fetchOrders();
+        } catch (e) { alert("Action failed."); }
+    }
+
+    function toggleStatus(btn) {
+        btn.innerText = btn.innerText === "PENDING" ? "COMPLETED" : "PENDING";
+        btn.className = `status-pill ${btn.innerText.toLowerCase()}`;
+    }
+
+    function downloadCSV() {
+        let csv = "Date,Item,Price,Name,Email,Phone,Address,Zip,Status\n";
+        ordersData.forEach(o => {
+            csv += `"${o.date}","${o.item}","${o.price}","${o.name}","${o.email}","${o.phone}","${o.address}","${o.zip}","${o.status}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Kinetic_Orders_${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+    }
+</script>
 </body>
 </html>
