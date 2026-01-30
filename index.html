@@ -14,8 +14,14 @@
         }
         
         /* CONTAINER */
-        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; max-width: 1300px; margin: 0 auto; }
+        .container { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); display: none; max-width: 1400px; margin: 0 auto; }
         
+        /* ANALYTICS CARDS */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: #fdfaf4; padding: 20px; border-radius: 10px; border-left: 5px solid #e69d45; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .stat-card small { color: #888; font-weight: bold; text-transform: uppercase; font-size: 11px; }
+        .stat-card h2 { margin: 5px 0 0; color: #333; font-size: 28px; }
+
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
         h1 { color: #333; font-size: 24px; margin: 0; }
         
@@ -39,8 +45,9 @@
         table { width: 100%; border-collapse: collapse; background: white; }
         th { background-color: #e69d45; color: white; padding: 15px; text-align: left; font-size: 13px; }
         td { padding: 12px 15px; border-bottom: 1px solid #eee; font-size: 13px; color: #555; vertical-align: middle; }
+        .cust-email { color: #e69d45; font-size: 11px; display: block; margin-top: 2px; }
 
-        @media (max-width: 992px) {
+        @media (max-width: 1100px) {
             .header-bar { flex-direction: column; text-align: center; }
             .btn-group { width: 100%; justify-content: center; }
             thead { display: none; }
@@ -55,18 +62,17 @@
 
     <div id="login-box">
         <h2 style="margin-top:0;">🔒 Admin Login</h2>
-        <div class="input-wrap">
-            <label>USERNAME</label>
-            <input type="text" id="userInput" placeholder="Admin Name">
-        </div>
-        <div class="input-wrap">
-            <label>PASSWORD</label>
-            <input type="password" id="passInput" placeholder="••••••••">
-        </div>
+        <div class="input-wrap"><label>USERNAME</label><input type="text" id="userInput" placeholder="Admin Name"></div>
+        <div class="input-wrap"><label>PASSWORD</label><input type="password" id="passInput" placeholder="••••••••"></div>
         <button class="btn login-btn" onclick="checkAuth()">SIGN IN</button>
     </div>
 
     <div class="container" id="dash-content">
+        <div class="stats-row">
+            <div class="stat-card"><small>Total Orders</small><h2 id="stat-count">0</h2></div>
+            <div class="stat-card"><small>Total Sales Value</small><h2 id="stat-sales">Rs 0</h2></div>
+        </div>
+
         <div class="header-bar">
             <h1>Orders Management</h1>
             <div class="btn-group">
@@ -82,7 +88,7 @@
                     <th>Date</th>
                     <th>Product</th>
                     <th>Price</th>
-                    <th>Customer</th>
+                    <th>Customer Contact</th>
                     <th>Zip Code</th>
                     <th>Address</th>
                     <th>Status</th>
@@ -94,27 +100,15 @@
     </div>
 
     <script>
-        // SET YOUR CREDENTIALS HERE
         const VALID_USER = "admin";
         const VALID_PASS = "kinetic2026";
 
-        // Check if session exists on load
-        window.onload = function() {
-            if (sessionStorage.getItem('kinetic_auth') === 'true') {
-                showDashboard();
-            }
-        };
+        window.onload = function() { if (sessionStorage.getItem('kinetic_auth') === 'true') { showDashboard(); } };
 
         function checkAuth() {
-            const user = document.getElementById('userInput').value;
-            const pass = document.getElementById('passInput').value;
-
-            if (user === VALID_USER && pass === VALID_PASS) {
-                sessionStorage.setItem('kinetic_auth', 'true');
-                showDashboard();
-            } else {
-                alert("Invalid Credentials! Please try again.");
-            }
+            if (document.getElementById('userInput').value === VALID_USER && document.getElementById('passInput').value === VALID_PASS) {
+                sessionStorage.setItem('kinetic_auth', 'true'); showDashboard();
+            } else { alert("Invalid Credentials!"); }
         }
 
         function showDashboard() {
@@ -123,84 +117,77 @@
             loadOrders();
         }
 
-        function logout() {
-            sessionStorage.removeItem('kinetic_auth');
-            location.reload();
-        }
+        function logout() { sessionStorage.removeItem('kinetic_auth'); location.reload(); }
 
-        // --- DASHBOARD LOGIC ---
         function loadOrders() {
             const orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
             const list = document.getElementById('orderList');
-            
+            let totalSales = 0;
+
             if (orders.length === 0) {
                 list.innerHTML = "<tr><td colspan='8' style='text-align:center;'>No orders found</td></tr>";
+                document.getElementById('stat-count').innerText = "0";
+                document.getElementById('stat-sales').innerText = "Rs 0";
                 return;
             }
 
             list.innerHTML = orders.slice().reverse().map((o, index) => {
                 const originalIndex = (orders.length - 1) - index;
                 const currentStatus = o.status || 'Pending';
-                const statusClass = 'status-' + currentStatus.toLowerCase();
+                
+                // Simple price calculation for stats
+                let numericPrice = parseInt(o.price.replace(/[^0-9]/g, "")) || 0;
+                totalSales += numericPrice;
 
                 return `
                 <tr>
                     <td data-label="Date">${o.date}</td>
                     <td data-label="Product"><strong>${o.item}</strong></td>
                     <td data-label="Price">${o.price}</td>
-                    <td data-label="Customer">${o.name}<br><small>${o.phone}</small></td>
+                    <td data-label="Customer Contact">
+                        <strong>${o.name}</strong><br>
+                        <small>${o.phone}</small>
+                        <span class="cust-email">${o.email}</span>
+                    </td>
                     <td data-label="Zip Code">${o.zip || 'N/A'}</td>
                     <td data-label="Address">${o.address}</td>
                     <td data-label="Status">
-                        <button class="btn status-btn ${statusClass}" onclick="toggleStatus(${originalIndex})">
+                        <button class="btn status-btn status-${currentStatus.toLowerCase()}" onclick="toggleStatus(${originalIndex})">
                             ${currentStatus.toUpperCase()}
                         </button>
                     </td>
-                    <td data-label="Action">
-                        <button class="btn delete-btn" onclick="deleteOrder(${originalIndex})">DELETE</button>
-                    </td>
+                    <td data-label="Action"><button class="btn delete-btn" onclick="deleteOrder(${originalIndex})">DELETE</button></td>
                 </tr>`;
             }).join('');
+
+            document.getElementById('stat-count').innerText = orders.length;
+            document.getElementById('stat-sales').innerText = "Rs " + totalSales.toLocaleString();
         }
 
         function toggleStatus(index) {
             let orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
-            const statusCycle = ['Pending', 'Shipped', 'Delivered'];
-            let currentIdx = statusCycle.indexOf(orders[index].status || 'Pending');
-            let nextIdx = (currentIdx + 1) % statusCycle.length;
-            orders[index].status = statusCycle[nextIdx];
-            localStorage.setItem('kinetic_orders', JSON.stringify(orders));
-            loadOrders();
+            const cycle = ['Pending', 'Shipped', 'Delivered'];
+            orders[index].status = cycle[(cycle.indexOf(orders[index].status || 'Pending') + 1) % cycle.length];
+            localStorage.setItem('kinetic_orders', JSON.stringify(orders)); loadOrders();
         }
 
         function deleteOrder(index) {
             let orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
-            if(confirm("Delete this order?")) {
-                orders.splice(index, 1);
-                localStorage.setItem('kinetic_orders', JSON.stringify(orders));
-                loadOrders();
-            }
+            if(confirm("Delete order?")) { orders.splice(index, 1); localStorage.setItem('kinetic_orders', JSON.stringify(orders)); loadOrders(); }
         }
 
         function clearAllOrders() {
-            if(confirm("Delete ALL orders?")) {
-                localStorage.setItem('kinetic_orders', JSON.stringify([]));
-                loadOrders();
-            }
+            if(confirm("Clear everything?")) { localStorage.setItem('kinetic_orders', JSON.stringify([])); loadOrders(); }
         }
 
         function exportToCSV() {
             const orders = JSON.parse(localStorage.getItem('kinetic_orders') || '[]');
-            if(orders.length === 0) return alert("No orders found");
+            if(orders.length === 0) return alert("Empty");
             let csv = "Date,Item,Price,Name,Email,Phone,Address,Zip,Status\n";
-            orders.forEach(o => {
-                csv += `"${o.date}","${o.item}","${o.price}","${o.name}","${o.email}","${o.phone}","${o.address}","${o.zip}","${o.status || 'Pending'}"\n`;
-            });
+            orders.forEach(o => csv += `"${o.date}","${o.item}","${o.price}","${o.name}","${o.email}","${o.phone}","${o.address}","${o.zip}","${o.status || 'Pending'}"\n`);
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('href', url); a.setAttribute('download', 'Kinetic_Orders.csv');
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = 'Kinetic_Orders.csv'; a.click();
         }
     </script>
 </body>
